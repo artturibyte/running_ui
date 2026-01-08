@@ -9,6 +9,7 @@
 #include <QTextEdit>
 #include <QMessageBox>
 #include <QDateEdit>
+#include "TrackWidget.h"
 #include <vector>
 #include <string>
 
@@ -41,6 +42,7 @@ private:
     QDateEdit *m_date_edit;
     QLineEdit *m_kilometers_entry;
     QPushButton *m_add_button;
+    TrackWidget *m_track_widget;
     QLabel *m_total_label;
     QLabel *m_average_label;
     QLabel *m_count_label;

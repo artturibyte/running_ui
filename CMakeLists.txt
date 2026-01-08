@@ -15,7 +15,9 @@ set(CMAKE_AUTOMOC ON)
 add_executable(running_tracker
     src/main.cpp
     src/MainWindow.cpp
+    src/TrackWidget.cpp
     include/MainWindow.h
+    include/TrackWidget.h
 )
 
 # Include directories

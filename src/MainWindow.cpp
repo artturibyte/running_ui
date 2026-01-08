@@ -57,6 +57,9 @@ void MainWindow::setup_ui() {
     input_layout->addWidget(m_kilometers_entry);
     input_layout->addWidget(m_add_button);
     
+    // Track visualization
+    m_track_widget = new TrackWidget(this);
+    
     // Statistics section
     QVBoxLayout *stats_layout = new QVBoxLayout();
     stats_layout->setSpacing(5);
@@ -99,6 +102,7 @@ void MainWindow::setup_ui() {
     
     // Add all widgets to main layout
     main_layout->addLayout(input_layout);
+    main_layout->addWidget(m_track_widget);
     main_layout->addLayout(stats_layout);
     main_layout->addWidget(separator);
     main_layout->addWidget(list_header);
@@ -239,6 +243,9 @@ void MainWindow::update_statistics() {
     m_count_label->setText(QString::fromStdString(count_oss.str()));
     m_daily_avg_label->setText(QString::fromStdString(daily_oss.str()));
     m_goal_label->setText(QString::fromStdString(goal_oss.str()));
+    
+    // Update track widget
+    m_track_widget->setProgress(total, YEARLY_GOAL);
 }
 
 void MainWindow::save_to_file() {
