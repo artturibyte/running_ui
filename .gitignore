@@ -14,7 +14,7 @@ running_tracker
 
 # CMake files
 CMakeCache.txt
-CMakeFiles/
+CMakes/
 cmake_install.cmake
 Makefile
 

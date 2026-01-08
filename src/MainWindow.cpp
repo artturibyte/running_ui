@@ -3,8 +3,11 @@
 #include <sstream>
 #include <ctime>
 #include <numeric>
+#include <fstream>
 #include <QWidget>
 #include <QFrame>
+#include <QStandardPaths>
+#include <QDir>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -12,8 +15,15 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("Running Tracker");
     resize(500, 400);
     
+    // Set up data file path
+    QString data_dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(data_dir);
+    m_data_file = data_dir + "/running_data.txt";
+    
     setup_ui();
+    load_from_file();
     update_list_view();
+    update_statistics();
 }
 
 void MainWindow::setup_ui() {
@@ -33,12 +43,10 @@ void MainWindow::setup_ui() {
     m_kilometers_entry->setMaxLength(10);
     
     m_add_button = new QPushButton("Add Entry", this);
-    m_clear_button = new QPushButton("Clear All", this);
     
     input_layout->addWidget(input_label);
     input_layout->addWidget(m_kilometers_entry);
     input_layout->addWidget(m_add_button);
-    input_layout->addWidget(m_clear_button);
     
     // Statistics section
     QVBoxLayout *stats_layout = new QVBoxLayout();
@@ -85,7 +93,6 @@ void MainWindow::setup_ui() {
     
     // Connect signals
     connect(m_add_button, &QPushButton::clicked, this, &MainWindow::on_add_button_clicked);
-    connect(m_clear_button, &QPushButton::clicked, this, &MainWindow::on_clear_button_clicked);
     connect(m_kilometers_entry, &QLineEdit::returnPressed, this, &MainWindow::on_add_button_clicked);
 }
 
@@ -112,6 +119,9 @@ void MainWindow::on_add_button_clicked() {
     // Add new entry
     m_entries.emplace_back(get_current_date(), kilometers);
     
+    // Save to file
+    save_to_file();
+    
     // Update UI
     update_list_view();
     update_statistics();
@@ -119,26 +129,6 @@ void MainWindow::on_add_button_clicked() {
     // Clear input field
     m_kilometers_entry->clear();
     m_kilometers_entry->setFocus();
-}
-
-void MainWindow::on_clear_button_clicked() {
-    if (m_entries.empty()) {
-        return;
-    }
-    
-    // Confirmation dialog
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this, 
-        "Confirm Clear",
-        "Are you sure you want to clear all entries?",
-        QMessageBox::Yes | QMessageBox::No
-    );
-    
-    if (reply == QMessageBox::Yes) {
-        m_entries.clear();
-        update_list_view();
-        update_statistics();
-    }
 }
 
 std::string MainWindow::get_current_date() const {
@@ -193,4 +183,53 @@ void MainWindow::update_statistics() {
     m_total_label->setText(QString::fromStdString(total_oss.str()));
     m_average_label->setText(QString::fromStdString(avg_oss.str()));
     m_count_label->setText(QString::fromStdString(count_oss.str()));
+}
+
+void MainWindow::save_to_file() {
+    std::ofstream file(m_data_file.toStdString());
+    
+    if (!file.is_open()) {
+        QMessageBox::warning(this, "Warning", 
+            "Could not save data to file:\n" + m_data_file);
+        return;
+    }
+    
+    for (const auto& entry : m_entries) {
+        file << entry.date << "," << std::fixed << std::setprecision(2) 
+             << entry.kilometers << "\n";
+    }
+    
+    file.close();
+}
+
+void MainWindow::load_from_file() {
+    std::ifstream file(m_data_file.toStdString());
+    
+    if (!file.is_open()) {
+        // File doesn't exist yet, which is fine for first run
+        return;
+    }
+    
+    m_entries.clear();
+    std::string line;
+    
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        
+        size_t comma_pos = line.find(',');
+        if (comma_pos == std::string::npos) continue;
+        
+        std::string date = line.substr(0, comma_pos);
+        std::string km_str = line.substr(comma_pos + 1);
+        
+        try {
+            double kilometers = std::stod(km_str);
+            m_entries.emplace_back(date, kilometers);
+        } catch (const std::exception&) {
+            // Skip invalid lines
+            continue;
+        }
+    }
+    
+    file.close();
 }

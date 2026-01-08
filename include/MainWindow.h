@@ -27,7 +27,6 @@ public:
 
 private slots:
     void on_add_button_clicked();
-    void on_clear_button_clicked();
 
 private:
     // Helper methods
@@ -35,11 +34,12 @@ private:
     void update_list_view();
     void update_statistics();
     void setup_ui();
+    void save_to_file();
+    void load_from_file();
 
     // Widgets
     QLineEdit *m_kilometers_entry;
     QPushButton *m_add_button;
-    QPushButton *m_clear_button;
     QLabel *m_total_label;
     QLabel *m_average_label;
     QLabel *m_count_label;
@@ -47,4 +47,5 @@ private:
     
     // Data storage
     std::vector<RunningEntry> m_entries;
+    QString m_data_file;
 };
