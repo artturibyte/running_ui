@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 #include <QMessageBox>
+#include <QDateEdit>
 #include <vector>
 #include <string>
 
@@ -30,7 +31,6 @@ private slots:
 
 private:
     // Helper methods
-    std::string get_current_date() const;
     void update_list_view();
     void update_statistics();
     void setup_ui();
@@ -38,11 +38,14 @@ private:
     void load_from_file();
 
     // Widgets
+    QDateEdit *m_date_edit;
     QLineEdit *m_kilometers_entry;
     QPushButton *m_add_button;
     QLabel *m_total_label;
     QLabel *m_average_label;
     QLabel *m_count_label;
+    QLabel *m_daily_avg_label;
+    QLabel *m_goal_label;
     QTextEdit *m_list_view;
     
     // Data storage

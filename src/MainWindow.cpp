@@ -8,6 +8,7 @@
 #include <QFrame>
 #include <QStandardPaths>
 #include <QDir>
+#include <QDate>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -37,13 +38,21 @@ void MainWindow::setup_ui() {
     QHBoxLayout *input_layout = new QHBoxLayout();
     input_layout->setSpacing(5);
     
-    QLabel *input_label = new QLabel("Daily Kilometers:", this);
+    QLabel *date_label = new QLabel("Date:", this);
+    m_date_edit = new QDateEdit(this);
+    m_date_edit->setDate(QDate::currentDate());
+    m_date_edit->setCalendarPopup(true);
+    m_date_edit->setDisplayFormat("yyyy-MM-dd");
+    
+    QLabel *input_label = new QLabel("Kilometers:", this);
     m_kilometers_entry = new QLineEdit(this);
     m_kilometers_entry->setPlaceholderText("Enter kilometers (e.g., 5.5)");
     m_kilometers_entry->setMaxLength(10);
     
     m_add_button = new QPushButton("Add Entry", this);
     
+    input_layout->addWidget(date_label);
+    input_layout->addWidget(m_date_edit);
     input_layout->addWidget(input_label);
     input_layout->addWidget(m_kilometers_entry);
     input_layout->addWidget(m_add_button);
@@ -55,14 +64,20 @@ void MainWindow::setup_ui() {
     m_total_label = new QLabel("<b>Total: 0.0 km</b>", this);
     m_average_label = new QLabel("<b>Average: 0.0 km</b>", this);
     m_count_label = new QLabel("<b>Entries: 0</b>", this);
+    m_daily_avg_label = new QLabel("<b>Daily Average: 0.0 km/day (Need: 2.7 km/day)</b>", this);
+    m_goal_label = new QLabel("<b>Goal Progress: 0.0 / 1000 km (0%)</b>", this);
     
     m_total_label->setTextFormat(Qt::RichText);
     m_average_label->setTextFormat(Qt::RichText);
     m_count_label->setTextFormat(Qt::RichText);
+    m_daily_avg_label->setTextFormat(Qt::RichText);
+    m_goal_label->setTextFormat(Qt::RichText);
     
     stats_layout->addWidget(m_total_label);
     stats_layout->addWidget(m_average_label);
     stats_layout->addWidget(m_count_label);
+    stats_layout->addWidget(m_daily_avg_label);
+    stats_layout->addWidget(m_goal_label);
     
     // Separator
     QFrame *separator = new QFrame(this);
@@ -116,8 +131,11 @@ void MainWindow::on_add_button_clicked() {
         return;
     }
     
+    // Get selected date
+    QString date = m_date_edit->date().toString("yyyy-MM-dd");
+    
     // Add new entry
-    m_entries.emplace_back(get_current_date(), kilometers);
+    m_entries.emplace_back(date.toStdString(), kilometers);
     
     // Save to file
     save_to_file();
@@ -126,18 +144,10 @@ void MainWindow::on_add_button_clicked() {
     update_list_view();
     update_statistics();
     
-    // Clear input field
+    // Clear input field and reset date to today
     m_kilometers_entry->clear();
+    m_date_edit->setDate(QDate::currentDate());
     m_kilometers_entry->setFocus();
-}
-
-std::string MainWindow::get_current_date() const {
-    auto now = std::time(nullptr);
-    auto tm = *std::localtime(&now);
-    
-    std::ostringstream oss;
-    oss << std::put_time(&tm, "%Y-%m-%d");
-    return oss.str();
 }
 
 void MainWindow::update_list_view() {
@@ -161,10 +171,19 @@ void MainWindow::update_list_view() {
 }
 
 void MainWindow::update_statistics() {
+    const double YEARLY_GOAL = 1000.0;
+    const double REQUIRED_DAILY_AVG = YEARLY_GOAL / 365.0;
+    
     if (m_entries.empty()) {
         m_total_label->setText("<b>Total: 0.0 km</b>");
         m_average_label->setText("<b>Average: 0.0 km</b>");
         m_count_label->setText("<b>Entries: 0</b>");
+        
+        std::ostringstream daily_oss;
+        daily_oss << "<b>Daily Average: 0.0 km/day (Need: " 
+                  << std::fixed << std::setprecision(1) << REQUIRED_DAILY_AVG << " km/day)</b>";
+        m_daily_avg_label->setText(QString::fromStdString(daily_oss.str()));
+        m_goal_label->setText("<b>Goal Progress: 0.0 / 1000 km (0%)</b>");
         return;
     }
     
@@ -175,14 +194,51 @@ void MainWindow::update_statistics() {
     
     double average = total / m_entries.size();
     
-    std::ostringstream total_oss, avg_oss, count_oss;
+    // Calculate daily average based on date range
+    int days_tracked = 1;
+    if (m_entries.size() > 1) {
+        // Find earliest and latest dates
+        std::string earliest = m_entries[0].date;
+        std::string latest = m_entries[0].date;
+        
+        for (const auto& entry : m_entries) {
+            if (entry.date < earliest) earliest = entry.date;
+            if (entry.date > latest) latest = entry.date;
+        }
+        
+        // Parse dates and calculate difference
+        QDate start = QDate::fromString(QString::fromStdString(earliest), "yyyy-MM-dd");
+        QDate end = QDate::fromString(QString::fromStdString(latest), "yyyy-MM-dd");
+        days_tracked = start.daysTo(end) + 1;
+    }
+    
+    double daily_average = total / days_tracked;
+    double progress_percent = (total / YEARLY_GOAL) * 100.0;
+    double pace_difference = daily_average - REQUIRED_DAILY_AVG;
+    
+    std::ostringstream total_oss, avg_oss, count_oss, daily_oss, goal_oss;
     total_oss << "<b>Total: " << std::fixed << std::setprecision(2) << total << " km</b>";
     avg_oss << "<b>Average: " << std::fixed << std::setprecision(2) << average << " km</b>";
     count_oss << "<b>Entries: " << m_entries.size() << "</b>";
     
+    daily_oss << "<b>Daily Average: " << std::fixed << std::setprecision(2) << daily_average 
+              << " km/day vs " << std::setprecision(1) << REQUIRED_DAILY_AVG << " km/day (";
+    if (pace_difference >= 0) {
+        daily_oss << "+" << std::setprecision(2) << pace_difference << " km/day ahead";
+    } else {
+        daily_oss << std::setprecision(2) << pace_difference << " km/day behind";
+    }
+    daily_oss << ")</b>";
+    
+    goal_oss << "<b>Goal Progress: " << std::fixed << std::setprecision(2) << total 
+             << " / " << static_cast<int>(YEARLY_GOAL) << " km (" 
+             << std::setprecision(1) << progress_percent << "%)</b>";
+    
     m_total_label->setText(QString::fromStdString(total_oss.str()));
     m_average_label->setText(QString::fromStdString(avg_oss.str()));
     m_count_label->setText(QString::fromStdString(count_oss.str()));
+    m_daily_avg_label->setText(QString::fromStdString(daily_oss.str()));
+    m_goal_label->setText(QString::fromStdString(goal_oss.str()));
 }
 
 void MainWindow::save_to_file() {
