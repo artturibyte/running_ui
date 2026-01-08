@@ -44,7 +44,6 @@ private:
     QPushButton *m_add_button;
     TrackWidget *m_track_widget;
     QLabel *m_total_label;
-    QLabel *m_average_label;
     QLabel *m_count_label;
     QLabel *m_daily_avg_label;
     QLabel *m_goal_label;

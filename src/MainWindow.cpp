@@ -20,8 +20,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Cyberpunk style
     setStyleSheet(
         "QMainWindow { background-color: #1a1a1a; }"
-        "QWidget { background-color: #1a1a1a; color: #777777; font-family: 'Monospace'; }"
-        "QLabel { color: #777777; font-weight: bold; }"
+        "QWidget { background-color: #1a1a1a; color: #555555; font-family: 'Monospace'; }"
+        "QLabel { color: #555555; font-weight: bold; }"
         "QLineEdit { "
         "    background-color: #2a2a2a; "
         "    color: #aaaa00; "
@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent)
         "}"
         "QTextEdit { "
         "    background-color: #0a0a0a; "
-        "    color: #777777; "
+        "    color: #555555; "
         "    border: 2px solid #aaaa00; "
         "    border-radius: 4px; "
         "    padding: 8px; "
@@ -97,6 +97,7 @@ void MainWindow::setup_ui() {
     input_layout->setSpacing(5);
     
     QLabel *date_label = new QLabel("Date:", this);
+    date_label->setStyleSheet("background-color: transparent; color: #ffff00;");
     m_date_edit = new QDateEdit(this);
     m_date_edit->setDate(QDate::currentDate());
     m_date_edit->setCalendarPopup(true);
@@ -104,6 +105,7 @@ void MainWindow::setup_ui() {
     m_date_edit->setMinimumWidth(130);
     
     QLabel *input_label = new QLabel("Kilometers:", this);
+    input_label->setStyleSheet("background-color: transparent; color: #ffff00;");
     m_kilometers_entry = new QLineEdit(this);
     m_kilometers_entry->setPlaceholderText("Enter kilometers (e.g., 5.5)");
     m_kilometers_entry->setMaxLength(10);
@@ -126,19 +128,16 @@ void MainWindow::setup_ui() {
     stats_layout->setSpacing(5);
     
     m_total_label = new QLabel("<b>Total: 0.0 km</b>", this);
-    m_average_label = new QLabel("<b>Average: 0.0 km</b>", this);
     m_count_label = new QLabel("<b>Entries: 0</b>", this);
-    m_daily_avg_label = new QLabel("<b>Daily Average: 0.0 km/day (Need: 2.7 km/day)</b>", this);
+    m_daily_avg_label = new QLabel("<b>Daily Average: 0.0 km/day</b>", this);
     m_goal_label = new QLabel("<b>Goal Progress: 0.0 / 1000 km (0%)</b>", this);
     
     m_total_label->setTextFormat(Qt::RichText);
-    m_average_label->setTextFormat(Qt::RichText);
     m_count_label->setTextFormat(Qt::RichText);
     m_daily_avg_label->setTextFormat(Qt::RichText);
     m_goal_label->setTextFormat(Qt::RichText);
     
     stats_layout->addWidget(m_total_label);
-    stats_layout->addWidget(m_average_label);
     stats_layout->addWidget(m_count_label);
     stats_layout->addWidget(m_daily_avg_label);
     stats_layout->addWidget(m_goal_label);
@@ -264,7 +263,6 @@ void MainWindow::update_statistics() {
     
     if (m_entries.empty()) {
         m_total_label->setText("<b>Total: 0.0 km</b>");
-        m_average_label->setText("<b>Average: 0.0 km</b>");
         m_count_label->setText("<b>Entries: 0</b>");
         
         std::ostringstream daily_oss;
@@ -304,13 +302,12 @@ void MainWindow::update_statistics() {
     double progress_percent = (total / YEARLY_GOAL) * 100.0;
     double pace_difference = daily_average - REQUIRED_DAILY_AVG;
     
-    std::ostringstream total_oss, avg_oss, count_oss, daily_oss, goal_oss;
+    std::ostringstream total_oss, count_oss, daily_oss, goal_oss;
     total_oss << "<b>Total: " << std::fixed << std::setprecision(2) << total << " km</b>";
-    avg_oss << "<b>Average: " << std::fixed << std::setprecision(2) << average << " km</b>";
     count_oss << "<b>Entries: " << m_entries.size() << "</b>";
     
     daily_oss << "<b>Daily Average: " << std::fixed << std::setprecision(2) << daily_average 
-              << " km/day vs " << std::setprecision(1) << REQUIRED_DAILY_AVG << " km/day (";
+             << " km/day (Need: " << std::setprecision(1) << REQUIRED_DAILY_AVG << " km/day, ";
     if (pace_difference >= 0) {
         daily_oss << "+" << std::setprecision(2) << pace_difference << " km/day ahead";
     } else {
@@ -323,7 +320,6 @@ void MainWindow::update_statistics() {
              << std::setprecision(1) << progress_percent << "%)</b>";
     
     m_total_label->setText(QString::fromStdString(total_oss.str()));
-    m_average_label->setText(QString::fromStdString(avg_oss.str()));
     m_count_label->setText(QString::fromStdString(count_oss.str()));
     m_daily_avg_label->setText(QString::fromStdString(daily_oss.str()));
     m_goal_label->setText(QString::fromStdString(goal_oss.str()));
