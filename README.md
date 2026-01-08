@@ -3,6 +3,8 @@
 A C++ application with a Qt-based user interface.
 Tracking daily running kilometers for a 1000km running challenge.
 
+![Running Tracker](data/image.png)
+
 ## Prerequisites
 
 ### Ubuntu/Debian
