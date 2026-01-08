@@ -14,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     setWindowTitle("Running Tracker");
-    resize(500, 400);
+    resize(900, 600);
+    setMinimumSize(750, 500);
     
     // Set up data file path
     QString data_dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
@@ -48,6 +49,7 @@ void MainWindow::setup_ui() {
     m_kilometers_entry = new QLineEdit(this);
     m_kilometers_entry->setPlaceholderText("Enter kilometers (e.g., 5.5)");
     m_kilometers_entry->setMaxLength(10);
+    m_kilometers_entry->setMaximumWidth(120);
     
     m_add_button = new QPushButton("Add Entry", this);
     
@@ -56,6 +58,7 @@ void MainWindow::setup_ui() {
     input_layout->addWidget(input_label);
     input_layout->addWidget(m_kilometers_entry);
     input_layout->addWidget(m_add_button);
+    input_layout->addStretch();  // Push everything to the left
     
     // Track visualization
     m_track_widget = new TrackWidget(this);
@@ -94,19 +97,36 @@ void MainWindow::setup_ui() {
     // List view
     m_list_view = new QTextEdit(this);
     m_list_view->setReadOnly(true);
+    m_list_view->setMaximumHeight(400);
+    m_list_view->setMinimumWidth(280);
+    m_list_view->setMaximumWidth(280);
     
     // Use monospace font for better alignment
     QFont font("Monospace");
     font.setStyleHint(QFont::TypeWriter);
     m_list_view->setFont(font);
     
+    // Create horizontal layout for track and history
+    QHBoxLayout *content_layout = new QHBoxLayout();
+    
+    // Left side: History
+    QVBoxLayout *left_layout = new QVBoxLayout();
+    left_layout->addWidget(list_header);
+    left_layout->addWidget(m_list_view);
+    left_layout->addStretch();  // Push content to top
+    
+    // Right side: Track and stats
+    QVBoxLayout *right_layout = new QVBoxLayout();
+    right_layout->addWidget(m_track_widget);
+    right_layout->addLayout(stats_layout);
+    
+    content_layout->addLayout(left_layout, 1);
+    content_layout->addLayout(right_layout, 2);
+    
     // Add all widgets to main layout
     main_layout->addLayout(input_layout);
-    main_layout->addWidget(m_track_widget);
-    main_layout->addLayout(stats_layout);
     main_layout->addWidget(separator);
-    main_layout->addWidget(list_header);
-    main_layout->addWidget(m_list_view);
+    main_layout->addLayout(content_layout);
     
     setCentralWidget(central_widget);
     
@@ -164,10 +184,16 @@ void MainWindow::update_list_view() {
             << std::right << std::setw(12) << "Kilometers\n";
         oss << std::string(27, '-') << "\n";
         
-        for (const auto& entry : m_entries) {
-            oss << std::left << std::setw(15) << entry.date
+        // Display last 20 entries in reverse order (newest first)
+        size_t start_idx = m_entries.size() > 20 ? m_entries.size() - 20 : 0;
+        for (auto it = m_entries.rbegin(); it != m_entries.rend() && it != m_entries.rbegin() + 20; ++it) {
+            oss << std::left << std::setw(15) << it->date
                 << std::right << std::setw(10) << std::fixed << std::setprecision(2) 
-                << entry.kilometers << " km\n";
+                << it->kilometers << " km\n";
+        }
+        
+        if (m_entries.size() > 20) {
+            oss << "\n... and " << (m_entries.size() - 20) << " more entries\n";
         }
     }
     
