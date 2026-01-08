@@ -17,6 +17,63 @@ MainWindow::MainWindow(QWidget *parent)
     resize(900, 600);
     setMinimumSize(750, 500);
     
+    // Cyberpunk style
+    setStyleSheet(
+        "QMainWindow { background-color: #1a1a1a; }"
+        "QWidget { background-color: #1a1a1a; color: #777777; font-family: 'Monospace'; }"
+        "QLabel { color: #777777; font-weight: bold; }"
+        "QLineEdit { "
+        "    background-color: #2a2a2a; "
+        "    color: #aaaa00; "
+        "    border: 2px solid #aaaa00; "
+        "    border-radius: 4px; "
+        "    padding: 4px; "
+        "    font-weight: bold; "
+        "}"
+        "QLineEdit:focus { "
+        "    border: 2px solid #00ff88; "
+        "}"
+        "QPushButton { "
+        "    background-color: #2a2a2a; "
+        "    color: #aaaa00; "
+        "    border: 2px solid #aaaa00; "
+        "    border-radius: 4px; "
+        "    padding: 6px 12px; "
+        "    font-weight: bold; "
+        "}"
+        "QPushButton:hover { "
+        "    background-color: #aaaa00; "
+        "    color: #1a1a1a; "
+        "}"
+        "QPushButton:pressed { "
+        "    background-color: #00ff88; "
+        "    border-color: #00ff88; "
+        "}"
+        "QDateEdit { "
+        "    background-color: #2a2a2a; "
+        "    color: #aaaa00; "
+        "    border: 2px solid #aaaa00; "
+        "    border-radius: 4px; "
+        "    padding: 4px; "
+        "    font-weight: bold; "
+        "}"
+        "QDateEdit::drop-down { "
+        "    border: none; "
+        "    background-color: #aaaa00; "
+        "}"
+        "QTextEdit { "
+        "    background-color: #0a0a0a; "
+        "    color: #777777; "
+        "    border: 2px solid #aaaa00; "
+        "    border-radius: 4px; "
+        "    padding: 8px; "
+        "    font-family: 'Monospace'; "
+        "}"
+        "QFrame { "
+        "    background-color: #aaaa00; "
+        "}"
+    );
+    
     // Set up data file path
     QString data_dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(data_dir);
@@ -44,6 +101,7 @@ void MainWindow::setup_ui() {
     m_date_edit->setDate(QDate::currentDate());
     m_date_edit->setCalendarPopup(true);
     m_date_edit->setDisplayFormat("yyyy-MM-dd");
+    m_date_edit->setMinimumWidth(130);
     
     QLabel *input_label = new QLabel("Kilometers:", this);
     m_kilometers_entry = new QLineEdit(this);

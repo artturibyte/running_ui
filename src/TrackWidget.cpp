@@ -103,9 +103,9 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
                     trackWidth - 2*trackThickness, 
                     trackHeight - 2*trackThickness);
     
-    // Draw background track (gray)
+    // Draw background track (dark grey)
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(220, 220, 220));
+    painter.setBrush(QColor(60, 60, 60));
     
     QPainterPath outerPath;
     outerPath.addRoundedRect(outerRect, cornerRadius, cornerRadius);
@@ -122,29 +122,36 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     double requiredKm = (dayOfYear / 365.0) * m_total_km;
     double requiredPercent = (m_total_km > 0) ? (requiredKm / m_total_km) * 100.0 : 0.0;
     
-    // Draw required pace marker (red line)
+    // Draw required pace marker (cyan line with glow)
     if (requiredPercent > 0 && requiredPercent <= 100) {
         QPointF outerPos = getPositionOnTrack(requiredPercent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
         QPointF innerPos = getPositionOnTrack(requiredPercent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
         
-        painter.setPen(QPen(QColor(244, 67, 54), 5));  // Red
+        // Glow effect
+        painter.setPen(QPen(QColor(0, 255, 255, 100), 10));
+        painter.drawLine(outerPos, innerPos);
+        painter.setPen(QPen(QColor(0, 255, 255), 6));
         painter.drawLine(outerPos, innerPos);
     }
     
-    // Draw current progress marker (green line)
+    // Draw current progress marker (yellow line with glow)
     if (m_progress_percent > 0 && m_progress_percent <= 100) {
         QPointF outerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
         QPointF innerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
         
-        painter.setPen(QPen(QColor(76, 175, 80), 5));  // Green
+        // Glow effect
+        painter.setPen(QPen(QColor(170, 170, 0, 100), 12));
+        painter.drawLine(outerPos, innerPos);
+        painter.setPen(QPen(QColor(170, 170, 0), 7));
         painter.drawLine(outerPos, innerPos);
     }
     
     // Draw center text
-    painter.setPen(QColor(60, 60, 60));
+    painter.setPen(QColor(170, 170, 0));  // Toned-down yellow
     QFont font = painter.font();
     font.setPointSize(24);
     font.setBold(true);
+    font.setFamily("Monospace");
     painter.setFont(font);
     
     QString progressText = QString::number(m_progress_percent, 'f', 1) + "%";
@@ -155,16 +162,17 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     font.setPointSize(12);
     font.setBold(false);
     painter.setFont(font);
+    painter.setPen(QColor(0, 255, 136));  // Cyan-green
     QString kmText = QString::number(m_current_km, 'f', 1) + " / " + 
                      QString::number(m_total_km, 'f', 0) + " km";
     QRect kmRect(centerX - 100, centerY + 10, 200, 30);
     painter.drawText(kmRect, Qt::AlignCenter, kmText);
     
     // Draw start marker at bottom center
-    painter.setPen(QPen(QColor(255, 255, 255), 4));
+    painter.setPen(QPen(QColor(170, 170, 0, 150), 6));
     painter.drawLine(centerX - 8, centerY + trackHeight/2 - trackThickness - 2,
                      centerX + 8, centerY + trackHeight/2 - trackThickness - 2);
-    painter.setPen(QPen(QColor(100, 100, 100), 2));
+    painter.setPen(QPen(QColor(170, 170, 0), 3));
     painter.drawLine(centerX - 8, centerY + trackHeight/2 - trackThickness - 2,
                      centerX + 8, centerY + trackHeight/2 - trackThickness - 2);
 }
