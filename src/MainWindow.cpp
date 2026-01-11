@@ -331,28 +331,31 @@ void MainWindow::update_statistics() {
     
     double daily_average = total / days_tracked;
     double progress_percent = (total / YEARLY_GOAL) * 100.0;
+    QDate startOfYear(QDate::currentDate().year(), 1, 1);
+    int dayOfYear = startOfYear.daysTo(QDate::currentDate()) + 1;
+    double pacer_km = (dayOfYear / 365.0) * 1000;
     double pace_difference = daily_average - REQUIRED_DAILY_AVG;
     
-    std::ostringstream total_oss, count_oss, daily_oss, goal_oss;
+    std::ostringstream total_oss, count_oss, pacer_oss, goal_oss;
     total_oss << "<b>Total: "  << total << " km</b>";
-    count_oss << "<b>Entries: " << m_entries.size() << "</b>";
+    count_oss << "<b>Daily average: " << daily_average << " km</b>";
     
-    daily_oss << "<b>Daily Average: "  << daily_average 
-             << " km/day (Need: "  << REQUIRED_DAILY_AVG << " km/day, ";
+    pacer_oss << "<b> Pacer progress: " << std::setprecision(3) << REQUIRED_DAILY_AVG << " km/day, "<< 
+    pacer_km << "km total, ";
     if (pace_difference >= 0) {
-        daily_oss << "+"  << pace_difference << " km/day ahead";
+        pacer_oss   << total - pacer_km << " km behind";
     } else {
-        daily_oss  << pace_difference << " km/day behind";
+        pacer_oss  << pacer_km - total << " km ahead";
     }
-    daily_oss << ")</b>";
+    pacer_oss << "</b>";
     
-    goal_oss << "<b>Goal Progress: "  << total 
+    goal_oss << "<b>Progress to goal: "  << total 
              << " / " << static_cast<int>(YEARLY_GOAL) << " km (" 
              << progress_percent << "%)</b>";
     
     m_total_label->setText(QString::fromStdString(total_oss.str()));
     m_count_label->setText(QString::fromStdString(count_oss.str()));
-    m_daily_avg_label->setText(QString::fromStdString(daily_oss.str()));
+    m_daily_avg_label->setText(QString::fromStdString(pacer_oss.str()));
     m_goal_label->setText(QString::fromStdString(goal_oss.str()));
     
     // Update track widget

@@ -127,10 +127,10 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
         QPointF outerPos = getPositionOnTrack(requiredPercent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
         QPointF innerPos = getPositionOnTrack(requiredPercent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
         
-        // Glow effect
-        painter.setPen(QPen(QColor(0, 255, 255, 100), 10));
+        // two lines for glow effect
+        painter.setPen(QPen(QColor(0, 255, 255, 100), 3));
         painter.drawLine(outerPos, innerPos);
-        painter.setPen(QPen(QColor(0, 255, 255), 6));
+        painter.setPen(QPen(QColor(0, 255, 255), 1));
         painter.drawLine(outerPos, innerPos);
     }
     
@@ -139,10 +139,9 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
         QPointF outerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
         QPointF innerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
         
-        // Glow effect
-        painter.setPen(QPen(QColor(170, 170, 0, 100), 12));
+        painter.setPen(QPen(QColor(170, 170, 0, 100), 3));
         painter.drawLine(outerPos, innerPos);
-        painter.setPen(QPen(QColor(170, 170, 0), 7));
+        painter.setPen(QPen(QColor(170, 170, 0), 1));
         painter.drawLine(outerPos, innerPos);
     }
     
@@ -168,13 +167,10 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     QRect kmRect(centerX - 100, centerY + 10, 200, 30);
     painter.drawText(kmRect, Qt::AlignCenter, kmText);
     
-    // Draw start marker at bottom center
-    painter.setPen(QPen(QColor(170, 170, 0, 150), 6));
-    painter.drawLine(centerX - 8, centerY + trackHeight/2 - trackThickness - 2,
-                     centerX + 8, centerY + trackHeight/2 - trackThickness - 2);
-    painter.setPen(QPen(QColor(170, 170, 0), 3));
-    painter.drawLine(centerX - 8, centerY + trackHeight/2 - trackThickness - 2,
-                     centerX + 8, centerY + trackHeight/2 - trackThickness - 2);
+    // Draw startline
+    painter.setPen(QPen(QColor(255, 255, 255, 150), 5));
+    painter.drawLine(centerX, centerY + trackHeight/2 - trackThickness,
+                     centerX, centerY + trackHeight/2 );
     
     // Draw dimension lines
     int dimOffset = 20;  // Distance from track edge to dimension line
