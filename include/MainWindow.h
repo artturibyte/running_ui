@@ -29,6 +29,7 @@ public:
 
 private slots:
     void on_add_button_clicked();
+    void on_remove_last_button_clicked();
 
 private:
     // Helper methods
@@ -42,6 +43,7 @@ private:
     QDateEdit *m_date_edit;
     QLineEdit *m_kilometers_entry;
     QPushButton *m_add_button;
+    QPushButton *m_remove_last_button;
     TrackWidget *m_track_widget;
     QLabel *m_total_label;
     QLabel *m_count_label;

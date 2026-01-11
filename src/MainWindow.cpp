@@ -112,12 +112,14 @@ void MainWindow::setup_ui() {
     m_kilometers_entry->setMaximumWidth(120);
     
     m_add_button = new QPushButton("Add Entry", this);
+    m_remove_last_button = new QPushButton("Remove Last", this);
     
     input_layout->addWidget(date_label);
     input_layout->addWidget(m_date_edit);
     input_layout->addWidget(input_label);
     input_layout->addWidget(m_kilometers_entry);
     input_layout->addWidget(m_add_button);
+    input_layout->addWidget(m_remove_last_button);
     input_layout->addStretch();  // Push everything to the left
     
     // Track visualization
@@ -189,6 +191,7 @@ void MainWindow::setup_ui() {
     
     // Connect signals
     connect(m_add_button, &QPushButton::clicked, this, &MainWindow::on_add_button_clicked);
+    connect(m_remove_last_button, &QPushButton::clicked, this, &MainWindow::on_remove_last_button_clicked);
     connect(m_kilometers_entry, &QLineEdit::returnPressed, this, &MainWindow::on_add_button_clicked);
 }
 
@@ -229,6 +232,23 @@ void MainWindow::on_add_button_clicked() {
     m_kilometers_entry->clear();
     m_date_edit->setDate(QDate::currentDate());
     m_kilometers_entry->setFocus();
+}
+
+void MainWindow::on_remove_last_button_clicked() {
+    if (m_entries.empty()) {
+        QMessageBox::information(this, "Info", "No entries to remove.");
+        return;
+    }
+    
+    // Remove the last entry
+    m_entries.pop_back();
+    
+    // Save to file
+    save_to_file();
+    
+    // Update UI
+    update_list_view();
+    update_statistics();
 }
 
 void MainWindow::update_list_view() {
