@@ -4,11 +4,24 @@
 #include <ctime>
 #include <numeric>
 #include <fstream>
+#include <locale>
 #include <QWidget>
 #include <QFrame>
 #include <QStandardPaths>
 #include <QDir>
 #include <QDate>
+#include <iostream>
+
+// need to use this because std::stod breaks with qt app
+double my_stod(const std::string &valueAsString) {
+    std::istringstream totalSString( valueAsString );
+    double valueAsDouble;
+    // maybe use some manipulators
+    totalSString >> valueAsDouble;
+    if(!totalSString)
+        throw std::runtime_error("Error converting to double");    
+    return valueAsDouble;
+}
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -262,10 +275,10 @@ void MainWindow::update_list_view() {
         oss << std::string(27, '-') << "\n";
         
         // Display last 20 entries in reverse order (newest first)
-        size_t start_idx = m_entries.size() > 20 ? m_entries.size() - 20 : 0;
+        
         for (auto it = m_entries.rbegin(); it != m_entries.rend() && it != m_entries.rbegin() + 20; ++it) {
             oss << std::left << std::setw(15) << it->date
-                << std::right << std::setw(10) << std::fixed << std::setprecision(2) 
+                << std::right << std::setw(10) 
                 << it->kilometers << " km\n";
         }
         
@@ -287,7 +300,7 @@ void MainWindow::update_statistics() {
         
         std::ostringstream daily_oss;
         daily_oss << "<b>Daily Average: 0.0 km/day (Need: " 
-                  << std::fixed << std::setprecision(1) << REQUIRED_DAILY_AVG << " km/day)</b>";
+                   << REQUIRED_DAILY_AVG << " km/day)</b>";
         m_daily_avg_label->setText(QString::fromStdString(daily_oss.str()));
         m_goal_label->setText("<b>Goal Progress: 0.0 / 1000 km (0%)</b>");
         return;
@@ -297,8 +310,6 @@ void MainWindow::update_statistics() {
                                    [](double sum, const RunningEntry& e) {
                                        return sum + e.kilometers;
                                    });
-    
-    double average = total / m_entries.size();
     
     // Calculate daily average based on date range
     int days_tracked = 1;
@@ -323,21 +334,21 @@ void MainWindow::update_statistics() {
     double pace_difference = daily_average - REQUIRED_DAILY_AVG;
     
     std::ostringstream total_oss, count_oss, daily_oss, goal_oss;
-    total_oss << "<b>Total: " << std::fixed << std::setprecision(2) << total << " km</b>";
+    total_oss << "<b>Total: "  << total << " km</b>";
     count_oss << "<b>Entries: " << m_entries.size() << "</b>";
     
-    daily_oss << "<b>Daily Average: " << std::fixed << std::setprecision(2) << daily_average 
-             << " km/day (Need: " << std::setprecision(1) << REQUIRED_DAILY_AVG << " km/day, ";
+    daily_oss << "<b>Daily Average: "  << daily_average 
+             << " km/day (Need: "  << REQUIRED_DAILY_AVG << " km/day, ";
     if (pace_difference >= 0) {
-        daily_oss << "+" << std::setprecision(2) << pace_difference << " km/day ahead";
+        daily_oss << "+"  << pace_difference << " km/day ahead";
     } else {
-        daily_oss << std::setprecision(2) << pace_difference << " km/day behind";
+        daily_oss  << pace_difference << " km/day behind";
     }
     daily_oss << ")</b>";
     
-    goal_oss << "<b>Goal Progress: " << std::fixed << std::setprecision(2) << total 
+    goal_oss << "<b>Goal Progress: "  << total 
              << " / " << static_cast<int>(YEARLY_GOAL) << " km (" 
-             << std::setprecision(1) << progress_percent << "%)</b>";
+             << progress_percent << "%)</b>";
     
     m_total_label->setText(QString::fromStdString(total_oss.str()));
     m_count_label->setText(QString::fromStdString(count_oss.str()));
@@ -358,7 +369,7 @@ void MainWindow::save_to_file() {
     }
     
     for (const auto& entry : m_entries) {
-        file << entry.date << "," << std::fixed << std::setprecision(2) 
+        file << entry.date << "," 
              << entry.kilometers << "\n";
     }
     
@@ -384,9 +395,10 @@ void MainWindow::load_from_file() {
         
         std::string date = line.substr(0, comma_pos);
         std::string km_str = line.substr(comma_pos + 1);
-        
+
+        float kilometers;
         try {
-            double kilometers = std::stod(km_str);
+            kilometers = my_stod(km_str);
             m_entries.emplace_back(date, kilometers);
         } catch (const std::exception&) {
             // Skip invalid lines
