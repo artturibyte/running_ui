@@ -175,4 +175,60 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     painter.setPen(QPen(QColor(170, 170, 0), 3));
     painter.drawLine(centerX - 8, centerY + trackHeight/2 - trackThickness - 2,
                      centerX + 8, centerY + trackHeight/2 - trackThickness - 2);
+    
+    // Draw dimension lines
+    int dimOffset = 20;  // Distance from track edge to dimension line
+    int tickSize = 8;    // Size of end ticks
+    
+    // Calculate track perimeter to scale dimensions to 1000km
+    double straightLength = trackWidth - trackHeight;
+    double semiCircleLength = M_PI * (trackHeight / 2.0);
+    double totalPerimeter = 2 * straightLength + 2 * semiCircleLength;
+    double kmPerPixel = 1000.0 / totalPerimeter;
+    
+    // Top horizontal dimension line (showing width)
+    int topLineY = centerY - trackHeight/2 - dimOffset;
+    int leftX = centerX - trackWidth/2;
+    int rightX = centerX + trackWidth/2;
+    
+    painter.setPen(QPen(QColor(85, 85, 85), 1));
+    // Main horizontal line
+    painter.drawLine(leftX, topLineY, rightX, topLineY);
+    // Left tick
+    painter.drawLine(leftX, topLineY - tickSize/2, leftX, topLineY + tickSize/2);
+    // Right tick
+    painter.drawLine(rightX, topLineY - tickSize/2, rightX, topLineY + tickSize/2);
+    
+    // Draw width measurement text (scaled to km)
+    font.setPointSize(9);
+    painter.setFont(font);
+    painter.setPen(QColor(120, 120, 120));
+    double widthKm = trackWidth * kmPerPixel;
+    QString widthText = QString::number(widthKm, 'f', 2) + " km";
+    QRect widthRect(centerX - 40, topLineY - 20, 80, 15);
+    painter.drawText(widthRect, Qt::AlignCenter, widthText);
+    
+    // Right vertical dimension line (showing height)
+    int rightLineX = centerX + trackWidth/2 + dimOffset;
+    int topY = centerY - trackHeight/2;
+    int bottomY = centerY + trackHeight/2;
+    
+    painter.setPen(QPen(QColor(85, 85, 85), 1));
+    // Main vertical line
+    painter.drawLine(rightLineX, topY, rightLineX, bottomY);
+    // Top tick
+    painter.drawLine(rightLineX - tickSize/2, topY, rightLineX + tickSize/2, topY);
+    // Bottom tick
+    painter.drawLine(rightLineX - tickSize/2, bottomY, rightLineX + tickSize/2, bottomY);
+    
+    // Draw height measurement text (rotated, scaled to km)
+    painter.save();
+    painter.translate(rightLineX + 25, centerY);
+    painter.rotate(-90);
+    painter.setPen(QColor(120, 120, 120));
+    double heightKm = trackHeight * kmPerPixel;
+    QString heightText = QString::number(heightKm, 'f', 2) + " km";
+    QRect heightRect(-40, -8, 80, 15);
+    painter.drawText(heightRect, Qt::AlignCenter, heightText);
+    painter.restore();
 }
