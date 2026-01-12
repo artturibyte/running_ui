@@ -234,12 +234,8 @@ void MainWindow::on_add_button_clicked() {
     // Add new entry
     m_entries.emplace_back(date.toStdString(), kilometers);
     
-    // Save to file
-    save_to_file();
-    
-    // Update UI
-    update_list_view();
-    update_statistics();
+    // Save and update UI
+    save_and_update_ui();
     
     // Clear input field and reset date to today
     m_kilometers_entry->clear();
@@ -256,12 +252,8 @@ void MainWindow::on_remove_last_button_clicked() {
     // Remove the last entry
     m_entries.pop_back();
     
-    // Save to file
-    save_to_file();
-    
-    // Update UI
-    update_list_view();
-    update_statistics();
+    // Save and update UI
+    save_and_update_ui();
 }
 
 void MainWindow::update_list_view() {
@@ -331,8 +323,7 @@ void MainWindow::update_statistics() {
     
     double daily_average = total / days_tracked;
     double progress_percent = (total / YEARLY_GOAL) * 100.0;
-    QDate startOfYear(QDate::currentDate().year(), 1, 1);
-    int dayOfYear = startOfYear.daysTo(QDate::currentDate()) + 1;
+    int dayOfYear = get_day_of_year();
     double pacer_km = (dayOfYear / 365.0) * 1000;
     double pace_difference = daily_average - REQUIRED_DAILY_AVG;
     
@@ -410,4 +401,15 @@ void MainWindow::load_from_file() {
     }
     
     file.close();
+}
+
+void MainWindow::save_and_update_ui() {
+    save_to_file();
+    update_list_view();
+    update_statistics();
+}
+
+int MainWindow::get_day_of_year() const {
+    QDate startOfYear(QDate::currentDate().year(), 1, 1);
+    return startOfYear.daysTo(QDate::currentDate()) + 1;
 }

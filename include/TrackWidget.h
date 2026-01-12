@@ -22,6 +22,11 @@ protected:
 private:
     QPointF getPositionOnTrack(double percent, int centerX, int centerY, 
                                int trackWidth, int trackHeight, int trackThickness, bool outer);
+    double calculateTrackPerimeter(int trackWidth, int trackHeight) const;
+    void drawProgressMarker(QPainter& painter, double percent, int centerX, int centerY,
+                           int trackWidth, int trackHeight, int trackThickness,
+                           const QColor& color);
+    int get_day_of_year() const;
     
     double m_current_km;
     double m_total_km;

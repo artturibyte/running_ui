@@ -29,12 +29,18 @@ QSize TrackWidget::minimumSizeHint() const {
     return QSize(400, 350);
 }
 
+double TrackWidget::calculateTrackPerimeter(int trackWidth, int trackHeight) const {
+    double straightLength = trackWidth - trackHeight;
+    double semiCircleLength = M_PI * (trackHeight / 2.0);
+    return 2 * straightLength + 2 * semiCircleLength;
+}
+
 QPointF TrackWidget::getPositionOnTrack(double percent, int centerX, int centerY, 
                                         int trackWidth, int trackHeight, int trackThickness, bool outer) {
     // Calculate position along the track perimeter
     double straightLength = trackWidth - trackHeight;
     double semiCircleLength = M_PI * (trackHeight / 2.0);
-    double totalPerimeter = 2 * straightLength + 2 * semiCircleLength;
+    double totalPerimeter = calculateTrackPerimeter(trackWidth, trackHeight);
     double distance = (percent / 100.0) * totalPerimeter;
     
     double remaining = distance;
@@ -117,32 +123,20 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     painter.drawPath(trackPath);
     
     // Calculate required pace position (based on day of year)
-    QDate startOfYear(QDate::currentDate().year(), 1, 1);
-    int dayOfYear = startOfYear.daysTo(QDate::currentDate()) + 1;
+    int dayOfYear = get_day_of_year();
     double requiredKm = (dayOfYear / 365.0) * m_total_km;
     double requiredPercent = (m_total_km > 0) ? (requiredKm / m_total_km) * 100.0 : 0.0;
     
     // Draw required pace marker (cyan line with glow)
     if (requiredPercent > 0 && requiredPercent <= 100) {
-        QPointF outerPos = getPositionOnTrack(requiredPercent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
-        QPointF innerPos = getPositionOnTrack(requiredPercent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
-        
-        // two lines for glow effect
-        painter.setPen(QPen(QColor(0, 255, 255, 100), 3));
-        painter.drawLine(outerPos, innerPos);
-        painter.setPen(QPen(QColor(0, 255, 255), 1));
-        painter.drawLine(outerPos, innerPos);
+        drawProgressMarker(painter, requiredPercent, centerX, centerY, trackWidth, trackHeight, 
+                          trackThickness, QColor(0, 255, 255));
     }
     
     // Draw current progress marker (red line with glow)
     if (m_progress_percent > 0 && m_progress_percent <= 100) {
-        QPointF outerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
-        QPointF innerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
-        
-        painter.setPen(QPen(QColor(220, 50, 50, 100), 3));
-        painter.drawLine(outerPos, innerPos);
-        painter.setPen(QPen(QColor(220, 50, 50), 1));
-        painter.drawLine(outerPos, innerPos);
+        drawProgressMarker(painter, m_progress_percent, centerX, centerY, trackWidth, trackHeight,
+                          trackThickness, QColor(220, 50, 50));
     }
     
     // Draw center text
@@ -202,9 +196,7 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     int tickSize = 8;    // Size of end ticks
     
     // Calculate track perimeter to scale dimensions to 1000km
-    double straightLength = trackWidth - trackHeight;
-    double semiCircleLength = M_PI * (trackHeight / 2.0);
-    double totalPerimeter = 2 * straightLength + 2 * semiCircleLength;
+    double totalPerimeter = calculateTrackPerimeter(trackWidth, trackHeight);
     double kmPerPixel = 1000.0 / totalPerimeter;
     
     // Top horizontal dimension line (showing width)
@@ -252,4 +244,22 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     QRect heightRect(-40, -8, 80, 15);
     painter.drawText(heightRect, Qt::AlignCenter, heightText);
     painter.restore();
+}
+
+void TrackWidget::drawProgressMarker(QPainter& painter, double percent, int centerX, int centerY,
+                                     int trackWidth, int trackHeight, int trackThickness,
+                                     const QColor& color) {
+    QPointF outerPos = getPositionOnTrack(percent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
+    QPointF innerPos = getPositionOnTrack(percent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
+    
+    // Draw with glow effect
+    painter.setPen(QPen(QColor(color.red(), color.green(), color.blue(), 100), 3));
+    painter.drawLine(outerPos, innerPos);
+    painter.setPen(QPen(color, 1));
+    painter.drawLine(outerPos, innerPos);
+}
+
+int TrackWidget::get_day_of_year() const {
+    QDate startOfYear(QDate::currentDate().year(), 1, 1);
+    return startOfYear.daysTo(QDate::currentDate()) + 1;
 }

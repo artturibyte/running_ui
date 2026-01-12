@@ -38,6 +38,8 @@ private:
     void setup_ui();
     void save_to_file();
     void load_from_file();
+    void save_and_update_ui();
+    int get_day_of_year() const;
 
     // Widgets
     QDateEdit *m_date_edit;
