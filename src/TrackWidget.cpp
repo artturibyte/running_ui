@@ -167,6 +167,31 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     QRect kmRect(centerX - 100, centerY + 10, 200, 30);
     painter.drawText(kmRect, Qt::AlignCenter, kmText);
     
+    // Draw color legend at bottom left
+    int legendX = 15;
+    int dotSize = 12;
+    int lineHeight = 25;
+    int legendY = height - 2 * lineHeight - 20;  // Position from bottom
+    
+    font.setPointSize(10);
+    font.setBold(false);
+    painter.setFont(font);
+    
+    // Yellow runner (current progress)
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(170, 170, 0));
+    painter.drawEllipse(QPointF(legendX + dotSize/2, legendY + dotSize/2), dotSize/2, dotSize/2);
+    painter.setPen(QColor(200, 200, 200));
+    painter.drawText(legendX + dotSize + 8, legendY + dotSize + 2, "Your progress");
+    
+    // Cyan runner (required pace)
+    legendY += lineHeight;
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(QColor(0, 255, 255));
+    painter.drawEllipse(QPointF(legendX + dotSize/2, legendY + dotSize/2), dotSize/2, dotSize/2);
+    painter.setPen(QColor(200, 200, 200));
+    painter.drawText(legendX + dotSize + 8, legendY + dotSize + 2, "Required pace");
+    
     // Draw startline
     painter.setPen(QPen(QColor(255, 255, 255, 150), 5));
     painter.drawLine(centerX, centerY + trackHeight/2 - trackThickness,
