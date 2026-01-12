@@ -134,14 +134,14 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
         painter.drawLine(outerPos, innerPos);
     }
     
-    // Draw current progress marker (yellow line with glow)
+    // Draw current progress marker (red line with glow)
     if (m_progress_percent > 0 && m_progress_percent <= 100) {
         QPointF outerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, true);
         QPointF innerPos = getPositionOnTrack(m_progress_percent, centerX, centerY, trackWidth, trackHeight, trackThickness, false);
         
-        painter.setPen(QPen(QColor(170, 170, 0, 100), 3));
+        painter.setPen(QPen(QColor(220, 50, 50, 100), 3));
         painter.drawLine(outerPos, innerPos);
-        painter.setPen(QPen(QColor(170, 170, 0), 1));
+        painter.setPen(QPen(QColor(220, 50, 50), 1));
         painter.drawLine(outerPos, innerPos);
     }
     
@@ -177,9 +177,9 @@ void TrackWidget::paintEvent(QPaintEvent *event) {
     font.setBold(false);
     painter.setFont(font);
     
-    // Yellow runner (current progress)
+    // Red runner (current progress)
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(170, 170, 0));
+    painter.setBrush(QColor(220, 50, 50));
     painter.drawEllipse(QPointF(legendX + dotSize/2, legendY + dotSize/2), dotSize/2, dotSize/2);
     painter.setPen(QColor(200, 200, 200));
     painter.drawText(legendX + dotSize + 8, legendY + dotSize + 2, "Your progress");

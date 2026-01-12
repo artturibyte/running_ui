@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setWindowTitle("Running Tracker");
     resize(900, 600);
-    setMinimumSize(750, 500);
+    setMinimumSize(1000, 500);
     
     // Cyberpunk style
     setStyleSheet(
@@ -120,7 +120,7 @@ void MainWindow::setup_ui() {
     QLabel *input_label = new QLabel("Kilometers:", this);
     input_label->setStyleSheet("background-color: transparent; color: #ffff00;");
     m_kilometers_entry = new QLineEdit(this);
-    m_kilometers_entry->setPlaceholderText("Enter kilometers (e.g., 5.5)");
+    m_kilometers_entry->setPlaceholderText("(e.g., 5.5)");
     m_kilometers_entry->setMaxLength(10);
     m_kilometers_entry->setMaximumWidth(120);
     
